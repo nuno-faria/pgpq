@@ -2,8 +2,7 @@
 
 use arrow_array::{
     self, Array, ArrowNativeTypeOp, Decimal128Array, Decimal32Array, Decimal64Array,
-    OffsetSizeTrait,
-    self, Array, ArrowNativeTypeOp, GenericStringArray, OffsetSizeTrait, StringViewArray,
+    GenericStringArray, OffsetSizeTrait, StringViewArray,
 };
 use arrow_schema::{DataType, Field, TimeUnit};
 use bytes::{BufMut, BytesMut};
