@@ -39,6 +39,7 @@ field_only = [
     "DurationSecondEncoderBuilder",
     "StringEncoderBuilder",
     "LargeStringEncoderBuilder",
+    "StringViewEncoderBuilder",
     "BinaryEncoderBuilder",
     "LargeBinaryEncoderBuilder",
     "ListEncoderBuilder",

@@ -197,6 +197,11 @@ fn test_large_string() {
 }
 
 #[test]
+fn test_string_view() {
+    run_test_case("string_view")
+}
+
+#[test]
 fn test_bool_nullable() {
     run_test_case("bool_nullable")
 }
@@ -344,6 +349,11 @@ fn test_string_nullable() {
 #[test]
 fn test_large_string_nullable() {
     run_test_case("large_string_nullable")
+}
+
+#[test]
+fn test_string_view_nullable() {
+    run_test_case("string_view_nullable")
 }
 
 #[test]
@@ -497,6 +507,11 @@ fn test_list_large_string() {
 }
 
 #[test]
+fn test_list_string_view() {
+    run_test_case("list_string_view")
+}
+
+#[test]
 fn test_list_bool_nullable() {
     run_test_case("list_bool_nullable")
 }
@@ -644,6 +659,11 @@ fn test_list_string_nullable() {
 #[test]
 fn test_list_large_string_nullable() {
     run_test_case("list_large_string_nullable")
+}
+
+#[test]
+fn test_list_string_view_nullable() {
+    run_test_case("list_string_view_nullable")
 }
 
 #[test]
@@ -797,6 +817,11 @@ fn test_list_nullable_large_string() {
 }
 
 #[test]
+fn test_list_nullable_string_view() {
+    run_test_case("list_nullable_string_view")
+}
+
+#[test]
 fn test_list_nullable_bool_nullable() {
     run_test_case("list_nullable_bool_nullable")
 }
@@ -944,4 +969,9 @@ fn test_list_nullable_string_nullable() {
 #[test]
 fn test_list_nullable_large_string_nullable() {
     run_test_case("list_nullable_large_string_nullable")
+}
+
+#[test]
+fn test_list_nullable_string_view_nullable() {
+    run_test_case("list_nullable_string_view_nullable")
 }

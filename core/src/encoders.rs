@@ -3,6 +3,7 @@
 use arrow_array::{
     self, Array, ArrowNativeTypeOp, Decimal128Array, Decimal32Array, Decimal64Array,
     OffsetSizeTrait,
+    self, Array, ArrowNativeTypeOp, GenericStringArray, OffsetSizeTrait, StringViewArray,
 };
 use arrow_schema::{DataType, Field, TimeUnit};
 use bytes::{BufMut, BytesMut};
@@ -61,6 +62,7 @@ pub enum Encoder<'a> {
     LargeBinary(LargeBinaryEncoder<'a>),
     String(StringEncoder<'a>),
     LargeString(LargeStringEncoder<'a>),
+    StringView(StringViewEncoder<'a>),
     List(ListEncoder<'a>),
     LargeList(LargeListEncoder<'a>),
 }
@@ -554,14 +556,18 @@ impl<T: OffsetSizeTrait> Encode for GenericBinaryEncoder<'_, T> {
 type BinaryEncoder<'a> = GenericBinaryEncoder<'a, i32>;
 type LargeBinaryEncoder<'a> = GenericBinaryEncoder<'a, i64>;
 
+pub trait GenericStrArray: arrow_array::Array {
+    fn value(&self, row: usize) -> &str;
+}
+
 #[derive(Debug)]
-pub struct GenericStringEncoder<'a, T: OffsetSizeTrait> {
-    arr: &'a arrow_array::GenericStringArray<T>,
+pub struct GenericStrEncoder<'a, T: GenericStrArray> {
+    arr: &'a T,
     field: String,
     output: StringOutputType,
 }
 
-impl<T: OffsetSizeTrait> Encode for GenericStringEncoder<'_, T> {
+impl<'a, T: GenericStrArray> Encode for GenericStrEncoder<'a, T> {
     fn encode(&self, row: usize, buf: &mut BytesMut) -> Result<(), ErrorKind> {
         if self.arr.is_null(row) {
             buf.put_i32(-1);
@@ -582,6 +588,7 @@ impl<T: OffsetSizeTrait> Encode for GenericStringEncoder<'_, T> {
         }
         Ok(())
     }
+
     fn size_hint(&self) -> Result<usize, ErrorKind> {
         let mut total = 0;
         for row in 0..self.arr.len() {
@@ -594,8 +601,21 @@ impl<T: OffsetSizeTrait> Encode for GenericStringEncoder<'_, T> {
     }
 }
 
-type StringEncoder<'a> = GenericStringEncoder<'a, i32>;
-type LargeStringEncoder<'a> = GenericStringEncoder<'a, i64>;
+impl<T: OffsetSizeTrait> GenericStrArray for GenericStringArray<T> {
+    fn value(&self, row: usize) -> &str {
+        self.value(row)
+    }
+}
+
+impl GenericStrArray for StringViewArray {
+    fn value(&self, row: usize) -> &str {
+        self.value(row)
+    }
+}
+
+type StringEncoder<'a> = GenericStrEncoder<'a, GenericStringArray<i32>>;
+type LargeStringEncoder<'a> = GenericStrEncoder<'a, GenericStringArray<i64>>;
+type StringViewEncoder<'a> = GenericStrEncoder<'a, StringViewArray>;
 
 #[derive(Debug)]
 pub struct GenericListEncoder<'a, T: OffsetSizeTrait> {
@@ -1170,6 +1190,19 @@ impl_encoder_builder_with_variable_output!(
 );
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct StringViewEncoderBuilder {
+    field: Arc<Field>,
+    output: StringOutputType,
+}
+
+impl_encoder_builder_with_variable_output!(
+    StringViewEncoderBuilder,
+    Encoder::StringView,
+    StringViewEncoder,
+    |dt: &DataType| matches!(dt, DataType::Utf8View)
+);
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct BinaryEncoderBuilder {
     field: Arc<Field>,
 }
@@ -1302,6 +1335,7 @@ pub enum EncoderBuilder {
     DurationSecond(DurationSecondEncoderBuilder),
     String(StringEncoderBuilder),
     LargeString(LargeStringEncoderBuilder),
+    StringView(StringViewEncoderBuilder),
     Binary(BinaryEncoderBuilder),
     LargeBinary(LargeBinaryEncoderBuilder),
     List(ListEncoderBuilder),
@@ -1388,6 +1422,10 @@ impl EncoderBuilder {
                 output: StringOutputType::Text,
             }),
             DataType::LargeUtf8 => Self::LargeString(LargeStringEncoderBuilder {
+                field,
+                output: StringOutputType::Text,
+            }),
+            DataType::Utf8View => Self::StringView(StringViewEncoderBuilder {
                 field,
                 output: StringOutputType::Text,
             }),
