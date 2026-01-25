@@ -138,6 +138,7 @@ fn _pgpq(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<crate::encoders::LargeBinaryEncoderBuilder>()?;
     m.add_class::<crate::encoders::ListEncoderBuilder>()?;
     m.add_class::<crate::encoders::LargeListEncoderBuilder>()?;
+    m.add_class::<crate::encoders::StructEncoderBuilder>()?;
 
     m.add_class::<crate::pg_schema::Bool>()?;
     m.add_class::<crate::pg_schema::Bytea>()?;

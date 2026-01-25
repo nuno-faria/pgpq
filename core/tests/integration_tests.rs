@@ -983,6 +983,16 @@ fn test_list_nullable_string_view_nullable() {
     run_test_case("list_nullable_string_view_nullable")
 }
 
+#[test]
+fn test_struct_with_two_primitive_cols() {
+    run_test_case("struct_with_two_primitive_cols")
+}
+
+#[test]
+fn test_nested_struct() {
+    run_test_case("nested_struct")
+}
+
 /// Confirm that the binary snapshots are loaded to Postgres correctly.
 #[test]
 fn validate_snapshots() {
@@ -1025,20 +1035,10 @@ fn validate_snapshots() {
         let binary_content = fs::read(path.clone()).unwrap();
         let (_, schema) = read_batches(arrow_data_path.join(format!("{name}.arrow")));
         let encoder = ArrowToPostgresBinaryEncoder::try_new(&schema).unwrap();
-        let columns_and_types = encoder
-            .schema()
-            .columns
-            .iter()
-            .map(|c| format!("\"{}\" {}", c.0, c.1.data_type.name().unwrap()))
-            .collect::<Vec<_>>()
-            .join(", ");
 
-        client
-            .execute(
-                &format!("create table \"{name}\" ({columns_and_types})"),
-                &[],
-            )
-            .unwrap();
+        // Use ddl() to generate the CREATE TABLE statement (with any required CREATE TYPE for structs)
+        let ddl = encoder.schema().ddl(&name, false);
+        client.batch_execute(&ddl).unwrap();
 
         // load snapshot data to Postgres
         let mut writer = client
