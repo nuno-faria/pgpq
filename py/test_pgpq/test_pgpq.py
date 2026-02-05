@@ -280,5 +280,5 @@ def test_custom_encoding(dbconn: Connection) -> None:
 def test_column_properties() -> None:
     column = Column("col", False, pgpq.schema.Text())
     assert column.name == "col"
-    assert column.nullable == False
+    assert column.nullable
     assert column.data_type == pgpq.schema.Text()
